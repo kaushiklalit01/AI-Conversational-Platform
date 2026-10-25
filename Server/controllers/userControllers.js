@@ -3,6 +3,7 @@
 import User from "../model/userSchema.js";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
+import { signupSchema, loginSchema } from "../validators/userValidation.js";
 
 // login
 // logout
@@ -21,22 +22,27 @@ const createToken = (id,email)=>{
 
 
 const cookiesOption = {
-    httpOnly: true,
-    secure: false,
-    maxAge: 60*60*1000
+    httpOnly: true, // javascript se access nahi kar sakta
+    secure: false, // 
+    maxAge: 60*60*1000 // age of cookie 1 hour
 }
 
 
 export const signup = async (req,res)=>{
     try{
 
-        const {name, age, email, password} = req.body;
+        // validate all this data using zod
+        const result = signupSchema.safeParse(req.body);
 
-        if(!email || !password || !name){
+        if(!result.success){
             return res.status(400).json({
-                message: "Email , password or name some filed are missing"
+                message: result.error.issues[0].message
             })
         }
+
+        const {name, age, email, password} = result.data;
+
+       
 
         // https status code
         //email wala already exist toh nahi karta
@@ -88,13 +94,17 @@ export const login = async (req,res)=>{
     
     try{
 
-        const {email, password} = req.body;
+        const result = loginSchema.safeParse(req.body);
 
-        if(!email || !password){
+        if(!result.success){
             return res.status(400).json({
-                message: "Email , password or some filed are missing"
+                message: result.error.issues[0].message
             })
         }
+
+        const {email, password} = result.data;
+
+        
 
         // verify the password
         const existingUser = await User.findOne({email});
@@ -183,10 +193,10 @@ export const logout = async (req,res)=>{
 //     }
 // }
 
-export const profie = async(req,res)=>{
+export const profile = async(req,res)=>{
     try{
-        // profile ki informat send karo
-        // Database ke andar call kari padegi, us user ko search, _id, email
+        // profile ki information send karo
+        // Database ke andar call karni padegi, us user ko search, _id, email
         res.status(200).json({
             name:req.user.name,
             age: req.user.age,

@@ -1,8 +1,10 @@
-import express from "express"
-import connectDB from "./config/database";
-import dotenv from "dotenv"
-import userRouter from "./routes/userRouter";
-import messageRouter from "./routes/messageRouter";
+import express from "express";
+import connectDB from "./config/database.js";
+import dotenv from "dotenv";
+import cors from "cors";
+import userRouter from "./routes/userRouter.js";
+import messageRouter from "./routes/messageRouter.js";
+import chatRouter from "./routes/chatRouter.js";
 import cookieParser from "cookie-parser";
 
 
@@ -13,14 +15,23 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true,
+}));
 
 
 
 
 app.use("/user", userRouter);
 app.use("/msg", messageRouter);
+app.use("/chat", chatRouter);
 
 
+// https://strikes.in/chat/getRecentChats
+// https://strikes.in/chat/getSingleChat
+// https://strikes.in/chat/deleteChat
+// https://strikes.in/chat/createChat
 // https://strikes.in/user/login
 // https://strikes.in/user/logout
 // https://strikes.in/user/signup
@@ -41,19 +52,20 @@ app.use("/msg", messageRouter);
 
 
 
-const startServer = async ()=>{
-    try{
-        
+const startServer = async () => {
+    try {
+
         await connectDB();
 
-       app.listen(process.env.PORT,()=>{
-        console.log(`Server has started listenting at port 3000 ${process.env.PORT}`);
-       })
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`Server has started listening at port ${PORT}`);
+        });
     }
-    catch(err){
+    catch (err) {
         console.log(err);
     }
-}
+};
 
 
 startServer();
